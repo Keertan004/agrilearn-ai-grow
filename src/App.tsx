@@ -14,6 +14,9 @@ import Register from "./pages/Register";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import FAQs from "./pages/FAQs";
+import CropSuggestion from "./pages/CropSuggestion";
+import ResourceLibrary from "./pages/ResourceLibrary";
+import ResourceDetail from "./pages/ResourceDetail";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import AiChatbot from "./components/AiChatbot";
@@ -32,6 +35,9 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/disease-detection" element={<DiseaseDetection />} />
+              <Route path="/crop-suggestion" element={<CropSuggestion />} />
+              <Route path="/resources" element={<ResourceLibrary />} />
+              <Route path="/resource/:id" element={<ResourceDetail />} />
               <Route path="/weather" element={<Weather />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/login" element={<Login />} />
