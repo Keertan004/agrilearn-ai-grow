@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,24 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Custom colors for AgriLearnNetwork
+				agri: {
+					green: {
+						light: '#8cc63f',
+						DEFAULT: '#5e8e3e',
+						dark: '#385624'
+					},
+					brown: {
+						light: '#d7ccc8',
+						DEFAULT: '#a1887f',
+						dark: '#5d4037'
+					},
+					blue: {
+						light: '#b3e5fc',
+						DEFAULT: '#29b6f6',
+						dark: '#0288d1'
+					}
 				}
 			},
 			borderRadius: {
