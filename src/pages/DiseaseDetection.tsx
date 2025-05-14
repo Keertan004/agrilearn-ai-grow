@@ -2,11 +2,14 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { analyzePlantDisease } from "@/services/plantDiseaseService";
+import { toast } from "sonner";
 
 type DiseaseResult = {
   name: string;
   cure: string;
   prevention: string;
+  confidence?: number;
 };
 
 const DiseaseDetection = () => {
@@ -48,24 +51,36 @@ const DiseaseDetection = () => {
     }
     
     setIsLoading(true);
+    toast.info("Analyzing plant image...");
     
     try {
-      // In a real application, we would upload the image to a backend
-      // For now, we'll simulate the response
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate network delay
+      // Convert image to base64 for analysis
+      const reader = new FileReader();
+      reader.readAsDataURL(selectedImage);
       
-      // Simulate AI response
-      setResult({
-        name: 'Tomato Late Blight',
-        cure: 'Apply copper-based fungicides as soon as symptoms appear. Remove and destroy infected plant parts. For organic options, try copper-based sprays or bacillus subtilis.',
-        prevention: 'Use disease-resistant varieties. Ensure proper spacing between plants for good air circulation. Avoid overhead watering. Apply preventive fungicides during humid weather. Practice crop rotation.'
-      });
+      reader.onload = async () => {
+        const base64Image = reader.result as string;
+        
+        // Send image for analysis
+        const diseaseData = await analyzePlantDisease(base64Image);
+        
+        // Update result with analysis data
+        setResult({
+          name: diseaseData.name,
+          cure: diseaseData.cure,
+          prevention: diseaseData.prevention,
+          confidence: diseaseData.confidence
+        });
+        
+        toast.success("Analysis complete!");
+        setError(null);
+        setIsLoading(false);
+      };
       
-      setError(null);
     } catch (err) {
       setError('Failed to analyze image. Please try again.');
+      toast.error("Analysis failed. Please try again.");
       console.error(err);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -169,6 +184,9 @@ const DiseaseDetection = () => {
                 <div>
                   <h3 className="font-semibold text-lg">Detected Disease</h3>
                   <p className="text-red-600 font-medium">{result.name}</p>
+                  {result.confidence && (
+                    <p className="text-sm text-gray-500">Confidence: {result.confidence}%</p>
+                  )}
                 </div>
                 
                 <div>

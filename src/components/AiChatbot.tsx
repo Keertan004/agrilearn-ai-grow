@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { 
   Sheet, 
@@ -10,13 +10,15 @@ import {
   SheetFooter,
   SheetDescription
 } from "@/components/ui/sheet";
-import { MessageSquare, Send } from "lucide-react";
+import { MessageSquare, Send, Image } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { generateChatbotResponse } from "@/services/chatbotService";
 
 type Message = {
   id: number;
   text: string;
   isUser: boolean;
+  image?: string;
 };
 
 const AiChatbot = () => {
@@ -25,6 +27,14 @@ const AiChatbot = () => {
   const [messages, setMessages] = useState<Message[]>([
     { id: 1, text: "Hello! I'm your AgriLearnNetwork assistant. How can I help you with farming today?", isUser: false },
   ]);
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Scroll to bottom of messages when new ones are added
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const handleSendMessage = () => {
     if (!message.trim()) return;
@@ -34,31 +44,73 @@ const AiChatbot = () => {
     setMessages(prevMessages => [...prevMessages, newUserMessage]);
     setMessage('');
     
-    // Simulate response after a short delay
+    // Show typing indicator
+    setIsTyping(true);
+    
+    // Generate response after a short delay to simulate thinking
     setTimeout(() => {
-      const responses = [
-        "I can help you identify plant diseases. Would you like to upload an image?",
-        "For crop suggestions, please share your location and the current season.",
-        "I can provide soil management advice based on your soil parameters.",
-        "Would you like to check the weather forecast for your farm?",
-        "Feel free to ask me any farming questions!"
-      ];
-      
-      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+      const botResponse = generateChatbotResponse(message);
       const newBotMessage = { 
         id: messages.length + 2, 
-        text: randomResponse, 
+        text: botResponse, 
         isUser: false 
       };
       
       setMessages(prevMessages => [...prevMessages, newBotMessage]);
-    }, 1000);
+      setIsTyping(false);
+    }, 1000 + Math.random() * 1000); // Random delay between 1-2 seconds
   };
   
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSendMessage();
     }
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Check if file is an image
+    if (!file.type.match('image.*')) {
+      return;
+    }
+    
+    // Create image message preview
+    const reader = new FileReader();
+    reader.onload = () => {
+      const imagePreview = reader.result as string;
+      
+      // Add image message
+      const newUserMessage = { 
+        id: messages.length + 1, 
+        text: "I've uploaded an image of my plant.", 
+        isUser: true,
+        image: imagePreview
+      };
+      setMessages(prevMessages => [...prevMessages, newUserMessage]);
+      
+      // Show typing indicator
+      setIsTyping(true);
+      
+      // Generate response after a delay
+      setTimeout(() => {
+        const botResponse = "Thank you for sharing this plant image. It appears to show some signs of stress. I'd recommend uploading it to our Disease Detection tool for a more detailed analysis. Would you like to try that?";
+        const newBotMessage = { 
+          id: messages.length + 2, 
+          text: botResponse, 
+          isUser: false 
+        };
+        
+        setMessages(prevMessages => [...prevMessages, newBotMessage]);
+        setIsTyping(false);
+      }, 2000);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const triggerImageUpload = () => {
+    fileInputRef.current?.click();
   };
 
   return (
@@ -90,14 +142,52 @@ const AiChatbot = () => {
                       : 'bg-gray-100 text-gray-800 rounded-tl-none'
                   }`}
                 >
+                  {msg.image && (
+                    <div className="mb-2">
+                      <img 
+                        src={msg.image} 
+                        alt="Uploaded plant" 
+                        className="rounded-lg max-h-48 w-auto"
+                      />
+                    </div>
+                  )}
                   {msg.text}
                 </div>
               </div>
             ))}
+            
+            {isTyping && (
+              <div className="flex justify-start">
+                <div className="bg-gray-100 text-gray-800 px-4 py-2 rounded-lg rounded-tl-none">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "600ms" }}></div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <div ref={messagesEndRef} />
           </div>
           
           <SheetFooter className="border-t pt-4">
             <div className="flex items-center w-full">
+              <Button 
+                size="icon" 
+                variant="ghost" 
+                className="mr-1" 
+                onClick={triggerImageUpload}
+              >
+                <Image className="h-4 w-4" />
+                <input 
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                />
+              </Button>
               <Input
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
