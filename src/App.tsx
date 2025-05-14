@@ -11,6 +11,8 @@ import Weather from "./pages/Weather";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Blog from "./pages/Blog";
+import FAQs from "./pages/FAQs";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import AiChatbot from "./components/AiChatbot";
@@ -33,6 +35,8 @@ const App = () => (
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/faqs" element={<FAQs />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
