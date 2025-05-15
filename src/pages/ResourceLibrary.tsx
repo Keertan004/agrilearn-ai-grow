@@ -1,704 +1,525 @@
 
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { BookOpen, Search, List, ArrowRight, Folder } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { useQuery } from '@tanstack/react-query';
+import { Search, Filter, Clock, User, Tag, ArrowRight } from 'lucide-react';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
-// Resource types
-interface Resource {
+type Resource = {
   id: string;
   title: string;
   description: string;
   category: string;
-  type: 'article' | 'video' | 'guide' | 'tool';
+  type: "article" | "video" | "guide" | "tool";
   thumbnail: string;
   author: string;
   date: string;
-  content?: string;
-  url?: string;
-  readTime?: string;
-}
+  readTime: string;
+  content: string;
+};
 
-// Mock API function for fetching resources
-const fetchResources = async (page: number, category: string, search: string): Promise<{
-  resources: Resource[];
-  totalPages: number;
-}> => {
-  // Simulating API delay
+// Mock resources data
+const mockResourcesData: Resource[] = [
+  {
+    id: "1",
+    title: "Sustainable Farming Practices for Small Farms",
+    description: "Learn how small-scale farmers can implement sustainable practices to improve yield while protecting the environment.",
+    category: "Sustainable Farming",
+    type: "article",
+    thumbnail: "https://images.unsplash.com/photo-1500651230702-0e2d8a49d4ad?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8ZmFybWluZ3xlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",
+    author: "Dr. Emily Johnson",
+    date: "2024-01-15",
+    readTime: "8 min read",
+    content: "Full content here..."
+  },
+  {
+    id: "2",
+    title: "Advanced Techniques in Crop Rotation",
+    description: "Maximize your farm's productivity with strategic crop rotation planning and implementation.",
+    category: "Crop Management",
+    type: "guide",
+    thumbnail: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8Y3JvcHxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",
+    author: "Prof. Michael Chang",
+    date: "2024-02-10",
+    readTime: "12 min read",
+    content: "Full content here..."
+  },
+  {
+    id: "3",
+    title: "Introduction to Precision Agriculture",
+    description: "Learn how modern technology is revolutionizing farming with precision agriculture techniques.",
+    category: "AgTech",
+    type: "video",
+    thumbnail: "https://images.unsplash.com/photo-1586771107445-d3ca888129ce?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8ZHJvbmUlMjBmYXJtaW5nfGVufDB8fDB8fHww&auto=format&fit=crop&w=800&q=60",
+    author: "Tech Farming Channel",
+    date: "2024-03-05",
+    readTime: "22 min video",
+    content: "Full content here..."
+  },
+  {
+    id: "4",
+    title: "Organic Pest Management for Vegetable Crops",
+    description: "Discover effective organic methods to control pests in your vegetable garden without harmful chemicals.",
+    category: "Pest Management",
+    type: "guide",
+    thumbnail: "https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8b3JnYW5pYyUyMGZhcm1pbmd8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
+    author: "Sarah Williams, IPM Specialist",
+    date: "2024-02-20",
+    readTime: "15 min read",
+    content: "Full content here..."
+  },
+  {
+    id: "5",
+    title: "Soil Health Assessment Tools",
+    description: "Essential tools and techniques for evaluating and improving your soil's health and fertility.",
+    category: "Soil Management",
+    type: "tool",
+    thumbnail: "https://images.unsplash.com/photo-1605000797499-95a51c5269ae?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c29pbHxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",
+    author: "Dr. Robert Chen, Soil Scientist",
+    date: "2024-03-15",
+    readTime: "10 min read",
+    content: "Full content here..."
+  },
+  {
+    id: "6",
+    title: "Water Conservation Strategies for Drought Conditions",
+    description: "Practical approaches to manage water efficiently during periods of drought and water scarcity.",
+    category: "Water Management",
+    type: "article",
+    thumbnail: "https://images.unsplash.com/photo-1468245856972-a0333f3f8293?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8ZHJvdWdodHxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",
+    author: "Maria Rodriguez, Water Conservation Expert",
+    date: "2024-01-28",
+    readTime: "11 min read",
+    content: "Full content here..."
+  },
+  {
+    id: "7",
+    title: "Introduction to Regenerative Agriculture",
+    description: "Learn how regenerative farming practices can restore ecosystem health while improving productivity.",
+    category: "Sustainable Farming",
+    type: "video",
+    thumbnail: "https://images.unsplash.com/photo-1625244724120-1fd1d34d00f6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8ZmFybWluZyUyMHByYWN0aWNlc3xlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",
+    author: "Regenerative Farming Institute",
+    date: "2024-04-05",
+    readTime: "18 min video",
+    content: "Full content here..."
+  },
+  {
+    id: "8",
+    title: "Financial Planning for Small Farm Operations",
+    description: "Essential financial strategies to ensure the economic sustainability of your small farm business.",
+    category: "Farm Business",
+    type: "guide",
+    thumbnail: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8ZmluYW5jaWFsJTIwcGxhbm5pbmd8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
+    author: "Jennifer Thompson, Agricultural Economist",
+    date: "2024-02-05",
+    readTime: "14 min read",
+    content: "Full content here..."
+  },
+  {
+    id: "9",
+    title: "Climate-Smart Agriculture Practices",
+    description: "Adapting farming methods to mitigate and adapt to climate change effects on agriculture.",
+    category: "Climate Adaptation",
+    type: "article",
+    thumbnail: "https://images.unsplash.com/photo-1569880153113-76e33fc52d5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y2xpbWF0ZSUyMGNoYW5nZXxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",
+    author: "Dr. James Wilson, Climate Scientist",
+    date: "2024-03-21",
+    readTime: "9 min read",
+    content: "Full content here..."
+  },
+  {
+    id: "10",
+    title: "Livestock Management for Sustainable Grazing",
+    description: "Techniques for responsible livestock management that improve land health and productivity.",
+    category: "Livestock",
+    type: "guide",
+    thumbnail: "https://images.unsplash.com/photo-1594756202469-9ff9799b2e4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8Y293JTIwZmFybXxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",
+    author: "Thomas Anderson, Grazing Specialist",
+    date: "2024-01-12",
+    readTime: "13 min read",
+    content: "Full content here..."
+  },
+  {
+    id: "11",
+    title: "Farm Equipment Maintenance Guide",
+    description: "Best practices for maintaining and extending the life of your essential farm equipment.",
+    category: "Equipment",
+    type: "tool",
+    thumbnail: "https://images.unsplash.com/photo-1591638246754-77e0722c3cc9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dHJhY3RvcnxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",
+    author: "Mike Johnson, Agricultural Mechanic",
+    date: "2024-04-10",
+    readTime: "12 min read",
+    content: "Full content here..."
+  },
+  {
+    id: "12",
+    title: "Starting a CSA Program: Complete Guide",
+    description: "Step-by-step instructions for establishing a successful Community Supported Agriculture program.",
+    category: "Farm Business",
+    type: "guide",
+    thumbnail: "https://images.unsplash.com/photo-1595855759920-86582cd54904?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8ZmFybWVycyUyMG1hcmtldHxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60",
+    author: "Lisa Chen, CSA Coordinator",
+    date: "2024-02-25",
+    readTime: "18 min read",
+    content: "Full content here..."
+  }
+];
+
+// Categories available for filtering
+const categories = [
+  "All Categories",
+  "Sustainable Farming",
+  "Crop Management",
+  "AgTech",
+  "Pest Management",
+  "Soil Management",
+  "Water Management",
+  "Farm Business",
+  "Climate Adaptation",
+  "Livestock",
+  "Equipment"
+];
+
+// Resource types available for filtering
+const resourceTypes = [
+  "All Types",
+  "article",
+  "video",
+  "guide",
+  "tool"
+];
+
+// Mock API function to fetch resources with filters
+const fetchResources = async (
+  search: string = '', 
+  category: string = 'All Categories', 
+  type: string = 'All Types',
+  page: number = 1, 
+  limit: number = 6
+): Promise<{ resources: Resource[], total: number }> => {
+  // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 800));
   
-  // All resources
-  const allResources: Resource[] = [
-    {
-      id: '1',
-      title: 'Sustainable Agriculture Practices for Small Farms',
-      description: 'Learn how small-scale farmers can implement sustainable practices while maintaining profitability.',
-      category: 'sustainable',
-      type: 'article',
-      thumbnail: 'https://images.unsplash.com/photo-1500651230702-0e2d8a49d4ad?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-      author: 'Dr. Anita Sharma',
-      date: '2023-08-15',
-      readTime: '8 min read',
-    },
-    {
-      id: '2',
-      title: 'Water Conservation Techniques in Crop Production',
-      description: 'Modern approaches to optimize water usage while maintaining optimal crop yields.',
-      category: 'water',
-      type: 'guide',
-      thumbnail: 'https://images.unsplash.com/photo-1589634749017-1c6918f04b2c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-      author: 'Prof. Rajesh Kumar',
-      date: '2023-07-22',
-      readTime: '12 min read',
-    },
-    {
-      id: '3',
-      title: 'Understanding Soil Health Indicators',
-      description: 'How to assess and improve the health of your farm soil using simple tests and observations.',
-      category: 'soil',
-      type: 'video',
-      thumbnail: 'https://images.unsplash.com/photo-1605000797499-95a51c5269ae?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-      author: 'Soil Science Institute',
-      date: '2023-09-05',
-      readTime: '15 min video',
-    },
-    {
-      id: '4',
-      title: 'Natural Pest Management Solutions',
-      description: 'Effective techniques for managing pests without heavy reliance on chemical pesticides.',
-      category: 'pests',
-      type: 'guide',
-      thumbnail: 'https://images.unsplash.com/photo-1626253925458-c6eb158eb7d0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-      author: 'Integrated Pest Management Center',
-      date: '2023-06-30',
-      readTime: '10 min read',
-    },
-    {
-      id: '5',
-      title: 'Climate-Resilient Farming Strategies',
-      description: 'Preparing your farm for climate change with adaptive agricultural practices.',
-      category: 'climate',
-      type: 'article',
-      thumbnail: 'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-      author: 'Climate Adaptation Research Center',
-      date: '2023-08-28',
-      readTime: '7 min read',
-    },
-    {
-      id: '6',
-      title: 'Precision Agriculture Technologies for Small Holders',
-      description: 'Affordable tech solutions that can help small farmers improve efficiency and yields.',
-      category: 'technology',
-      type: 'tool',
-      thumbnail: 'https://images.unsplash.com/photo-1586169407707-cb29f4c22c8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-      author: 'AgTech Innovation Hub',
-      date: '2023-09-12',
-      readTime: '9 min read',
-    },
-    {
-      id: '7',
-      title: 'Organic Certification Process Explained',
-      description: 'Step-by-step guide to obtaining organic certification for your farm products.',
-      category: 'organic',
-      type: 'guide',
-      thumbnail: 'https://images.unsplash.com/photo-1589923188900-85dae523342b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-      author: 'Organic Farming Association',
-      date: '2023-07-05',
-      readTime: '14 min read',
-    },
-    {
-      id: '8',
-      title: 'Value-Added Farm Products: From Field to Market',
-      description: 'How to increase farm income through product diversification and value addition.',
-      category: 'business',
-      type: 'article',
-      thumbnail: 'https://images.unsplash.com/photo-1595272568891-123402d0fb3b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-      author: 'Agricultural Economics Department',
-      date: '2023-08-10',
-      readTime: '11 min read',
-    },
-    {
-      id: '9',
-      title: 'Livestock Management Best Practices',
-      description: 'Comprehensive guide to raising healthy livestock with sustainable practices.',
-      category: 'livestock',
-      type: 'guide',
-      thumbnail: 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-      author: 'Veterinary Science Institute',
-      date: '2023-06-18',
-      readTime: '15 min read',
-    },
-    {
-      id: '10',
-      title: 'Agricultural Finance and Grant Opportunities',
-      description: 'Information on loans, grants, and financial programs available to farmers.',
-      category: 'finance',
-      type: 'guide',
-      thumbnail: 'https://images.unsplash.com/photo-1626266063048-38c15931ba3f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-      author: 'Agricultural Finance Center',
-      date: '2023-09-20',
-      readTime: '13 min read',
-    },
-    {
-      id: '11',
-      title: 'Cover Cropping Strategies for Soil Improvement',
-      description: 'How to use cover crops to enhance soil health, prevent erosion, and reduce input costs.',
-      category: 'soil',
-      type: 'article',
-      thumbnail: 'https://images.unsplash.com/photo-1530585575527-51cb2f95b552?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-      author: 'Sustainable Agriculture Research Center',
-      date: '2023-08-05',
-      readTime: '8 min read',
-    },
-    {
-      id: '12',
-      title: 'Market Access Strategies for Small Farmers',
-      description: 'Finding and accessing profitable markets for your agricultural products.',
-      category: 'business',
-      type: 'guide',
-      thumbnail: 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-      author: 'Agricultural Marketing Institute',
-      date: '2023-07-15',
-      readTime: '9 min read',
-    },
-    {
-      id: '13',
-      title: 'Greenhouse Management and High-Value Crops',
-      description: 'Techniques for successful greenhouse farming and selecting profitable specialty crops.',
-      category: 'technology',
-      type: 'video',
-      thumbnail: 'https://images.unsplash.com/photo-1562578881-9e80a80180a4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-      author: 'Horticultural Science Department',
-      date: '2023-09-08',
-      readTime: '18 min video',
-    },
-    {
-      id: '14',
-      title: 'Agricultural Waste Management Solutions',
-      description: 'Converting farm waste into valuable resources through composting and other methods.',
-      category: 'sustainable',
-      type: 'guide',
-      thumbnail: 'https://images.unsplash.com/photo-1533626904905-cc52fd99591d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-      author: 'Environmental Management Systems',
-      date: '2023-06-25',
-      readTime: '11 min read',
-    },
-    {
-      id: '15',
-      title: 'Weather Monitoring Tools for Farm Management',
-      description: 'Using weather data and forecasts to optimize farm operations and reduce risks.',
-      category: 'technology',
-      type: 'tool',
-      thumbnail: 'https://images.unsplash.com/photo-1504870444519-3c678061c754?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-      author: 'Agricultural Meteorology Department',
-      date: '2023-08-22',
-      readTime: '7 min read',
-    },
-  ];
+  // Filter resources based on search, category, and type
+  let filteredResources = [...mockResourcesData];
   
-  // Filter by category if specified
-  let filteredResources = allResources;
-  if (category && category !== 'all') {
-    filteredResources = filteredResources.filter(resource => resource.category === category);
-  }
-  
-  // Filter by search term if specified
   if (search) {
     const searchLower = search.toLowerCase();
-    filteredResources = filteredResources.filter(
-      resource =>
-        resource.title.toLowerCase().includes(searchLower) ||
-        resource.description.toLowerCase().includes(searchLower) ||
-        resource.category.toLowerCase().includes(searchLower)
+    filteredResources = filteredResources.filter(resource => 
+      resource.title.toLowerCase().includes(searchLower) ||
+      resource.description.toLowerCase().includes(searchLower)
+    );
+  }
+  
+  if (category && category !== 'All Categories') {
+    filteredResources = filteredResources.filter(resource => 
+      resource.category === category
+    );
+  }
+  
+  if (type && type !== 'All Types') {
+    filteredResources = filteredResources.filter(resource => 
+      resource.type === type
     );
   }
   
   // Calculate pagination
-  const itemsPerPage = 6;
-  const totalPages = Math.ceil(filteredResources.length / itemsPerPage);
-  const startIndex = (page - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
   const paginatedResources = filteredResources.slice(startIndex, endIndex);
   
   return {
     resources: paginatedResources,
-    totalPages,
+    total: filteredResources.length
   };
 };
 
-// Resource categories
-const categories = [
-  { id: 'all', name: 'All Resources' },
-  { id: 'sustainable', name: 'Sustainable Farming' },
-  { id: 'soil', name: 'Soil Management' },
-  { id: 'water', name: 'Water Conservation' },
-  { id: 'pests', name: 'Pest Management' },
-  { id: 'technology', name: 'AgTech & Innovation' },
-  { id: 'business', name: 'Farm Business' },
-  { id: 'climate', name: 'Climate Resilience' },
-  { id: 'organic', name: 'Organic Farming' },
-];
-
-// Resource type icons
-const resourceTypeIcons = {
-  article: <BookOpen className="h-4 w-4" />,
-  video: <BookOpen className="h-4 w-4" />,
-  guide: <List className="h-4 w-4" />,
-  tool: <Folder className="h-4 w-4" />,
-};
-
-// Function to fetch a resource by ID
-const fetchResourceById = async (id: string): Promise<Resource | null> => {
-  // In a real application, this would make an API call
-  // Simulating API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  // Mock data for specific resource
-  if (id === '1') {
-    return {
-      id: '1',
-      title: 'Sustainable Agriculture Practices for Small Farms',
-      description: 'Learn how small-scale farmers can implement sustainable practices while maintaining profitability.',
-      category: 'sustainable',
-      type: 'article',
-      thumbnail: 'https://images.unsplash.com/photo-1500651230702-0e2d8a49d4ad?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-      author: 'Dr. Anita Sharma',
-      date: '2023-08-15',
-      readTime: '8 min read',
-      content: `
-        <h2>Introduction to Sustainable Agriculture</h2>
-        <p>Sustainable agriculture is a holistic approach to farming that considers the long-term health of the environment, economic viability, and social well-being. For small farmers, implementing sustainable practices can not only reduce environmental impact but also increase resilience and profitability in the long run.</p>
-        
-        <h2>Key Sustainable Practices for Small Farms</h2>
-        
-        <h3>1. Crop Rotation and Diversification</h3>
-        <p>One of the foundational practices in sustainable agriculture is crop rotation—the systematic planting of different crops in sequence on the same land. This practice helps manage soil fertility, reduce pest pressure, and optimize nutrient use.</p>
-        <p>Benefits include:</p>
-        <ul>
-          <li>Improved soil structure and fertility</li>
-          <li>Reduced dependency on synthetic fertilizers</li>
-          <li>Better pest and disease management</li>
-          <li>Increased biodiversity</li>
-          <li>Risk mitigation through diversified income streams</li>
-        </ul>
-        
-        <h3>2. Cover Cropping</h3>
-        <p>Cover crops are planted to cover the soil rather than for harvest. They play a crucial role in sustainable farming by protecting and improving soil health during off-seasons.</p>
-        <p>Cover crops can:</p>
-        <ul>
-          <li>Prevent soil erosion</li>
-          <li>Suppress weeds naturally</li>
-          <li>Add organic matter to soil</li>
-          <li>Fix nitrogen (leguminous cover crops)</li>
-          <li>Break pest cycles</li>
-        </ul>
-        
-        <h3>3. Integrated Pest Management (IPM)</h3>
-        <p>IPM is an ecosystem-based approach that combines different pest management techniques to minimize economic, health, and environmental risks.</p>
-        <p>Key components include:</p>
-        <ul>
-          <li>Regular monitoring of crops for pests</li>
-          <li>Setting action thresholds</li>
-          <li>Preventive cultural practices</li>
-          <li>Biological controls</li>
-          <li>Targeted use of pesticides only when necessary</li>
-        </ul>
-        
-        <h3>4. Water Conservation</h3>
-        <p>Efficient water management is increasingly important as climate change affects rainfall patterns and water availability.</p>
-        <p>Effective strategies include:</p>
-        <ul>
-          <li>Drip irrigation systems</li>
-          <li>Rainwater harvesting</li>
-          <li>Mulching to retain soil moisture</li>
-          <li>Planting drought-resistant varieties</li>
-          <li>Scheduled irrigation based on crop needs</li>
-        </ul>
-        
-        <h2>Economic Considerations</h2>
-        
-        <p>While transitioning to sustainable practices may require initial investment, many farmers report long-term cost savings and premium pricing opportunities:</p>
-        
-        <h3>Cost-Benefit Analysis</h3>
-        <ul>
-          <li>Reduced input costs (fertilizers, pesticides)</li>
-          <li>Lower irrigation expenses</li>
-          <li>Improved crop resilience reduces losses</li>
-          <li>Access to premium markets and certification programs</li>
-          <li>Diversified income streams reduce financial risk</li>
-        </ul>
-        
-        <h2>Getting Started with Sustainable Practices</h2>
-        
-        <p>For small farmers looking to transition to more sustainable methods, consider these steps:</p>
-        
-        <ol>
-          <li>Start small with one or two practices</li>
-          <li>Document and measure outcomes</li>
-          <li>Connect with local extension services for guidance</li>
-          <li>Join farmer networks to share knowledge</li>
-          <li>Explore certification options as your practices develop</li>
-        </ol>
-        
-        <h2>Conclusion</h2>
-        
-        <p>Sustainable agriculture offers small farmers a path to long-term viability while contributing to environmental health and community well-being. By implementing practices like crop rotation, cover cropping, IPM, and water conservation, small farms can build resilience against climate change and market fluctuations while potentially accessing premium markets for their products.</p>
-      `,
-    };
-  }
-  
-  // Return null if resource not found
-  return null;
-};
-
 const ResourceLibrary: React.FC = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All Categories');
+  const [selectedType, setSelectedType] = useState('All Types');
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [activeTab, setActiveTab] = useState('browse');
+  const [isSearching, setIsSearching] = useState(false);
+  const resourcesPerPage = 6;
   
   // Query for resources
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['resources', currentPage, selectedCategory, searchTerm],
-    queryFn: () => fetchResources(currentPage, selectedCategory, searchTerm),
+    queryKey: ['resources', searchQuery, selectedCategory, selectedType, currentPage],
+    queryFn: () => fetchResources(
+      isSearching ? searchQuery : '', 
+      selectedCategory, 
+      selectedType, 
+      currentPage, 
+      resourcesPerPage
+    ),
+    initialData: { resources: [], total: 0 }
   });
   
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const totalPages = Math.ceil(data.total / resourcesPerPage);
+  
+  // Handle search
+  const handleSearch = () => {
+    setIsSearching(true);
     setCurrentPage(1);
     refetch();
   };
   
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category);
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategory(value);
     setCurrentPage(1);
+    refetch();
   };
   
-  const handleLoadMore = () => {
-    if (data && currentPage < data.totalPages) {
+  const handleTypeChange = (value: string) => {
+    setSelectedType(value);
+    setCurrentPage(1);
+    refetch();
+  };
+  
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
+  };
+  
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
       setCurrentPage(prev => prev + 1);
     }
   };
   
   return (
     <div className="container mx-auto py-10 px-4">
-      <h1 className="text-3xl font-bold mb-8 text-center">Agricultural Resource Library</h1>
-      
-      <div className="mb-8">
-        <p className="text-gray-600 mb-4 text-center max-w-3xl mx-auto">
-          Explore our extensive collection of agricultural resources, including guides, articles, videos, and tools to improve your farming practices.
+      <div className="text-center mb-10">
+        <h1 className="text-3xl font-bold mb-4">Agricultural Resource Library</h1>
+        <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
+          Explore our comprehensive collection of resources for sustainable farming, crop management, 
+          agricultural technology, and more to help improve your farming practices.
         </p>
+        
+        <div className="max-w-3xl mx-auto">
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search resources..." 
+                className="pl-9"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              />
+            </div>
+            <Button onClick={handleSearch}>
+              Search
+            </Button>
+          </div>
+        </div>
       </div>
       
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
-          <TabsTrigger value="browse">Browse Resources</TabsTrigger>
-          <TabsTrigger value="featured">Featured Collections</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="browse" className="space-y-8">
-          {/* Search and filter */}
-          <div className="flex flex-col md:flex-row gap-4">
-            <form onSubmit={handleSearch} className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input 
-                  type="search" 
-                  placeholder="Search resources..." 
-                  className="pl-10"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </form>
-            
-            <div className="flex gap-2 overflow-x-auto pb-2">
-              {categories.map((category) => (
-                <Button
-                  key={category.id}
-                  variant={selectedCategory === category.id ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => handleCategoryChange(category.id)}
-                  className="whitespace-nowrap"
+      <div className="flex flex-col md:flex-row items-start gap-6 mb-8">
+        <div className="w-full md:w-64 space-y-4">
+          <div>
+            <h3 className="text-lg font-medium mb-2 flex items-center">
+              <Filter className="h-5 w-5 mr-2" /> Filters
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm mb-1">Category</label>
+                <Select 
+                  value={selectedCategory} 
+                  onValueChange={handleCategoryChange}
                 >
-                  {category.name}
-                </Button>
-              ))}
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <label className="block text-sm mb-1">Resource Type</label>
+                <Select 
+                  value={selectedType} 
+                  onValueChange={handleTypeChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {resourceTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type === 'All Types' ? type : type.charAt(0).toUpperCase() + type.slice(1)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
           
-          {/* Resource grid */}
+          <div className="p-4 border rounded-lg bg-muted/50">
+            <h4 className="font-medium mb-2">Need Help?</h4>
+            <p className="text-sm text-muted-foreground mb-3">
+              Not finding what you're looking for? Our team is here to help you find the right resources.
+            </p>
+            <Button variant="outline" size="sm" className="w-full">
+              Contact Support
+            </Button>
+          </div>
+        </div>
+        
+        <div className="flex-1">
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, index) => (
-                <Card key={index} className="overflow-hidden h-full">
-                  <div className="animate-pulse">
-                    <div className="h-48 bg-gray-200" />
-                    <CardHeader className="pb-2">
-                      <div className="h-6 bg-gray-200 rounded w-3/4 mb-2" />
-                      <div className="h-4 bg-gray-200 rounded w-1/2" />
-                    </CardHeader>
-                    <CardContent className="pb-2">
-                      <div className="h-4 bg-gray-200 rounded mb-2" />
-                      <div className="h-4 bg-gray-200 rounded w-5/6" />
-                    </CardContent>
-                    <CardFooter className="flex justify-between">
-                      <div className="h-4 bg-gray-200 rounded w-1/3" />
-                      <div className="h-4 bg-gray-200 rounded w-1/4" />
-                    </CardFooter>
-                  </div>
+              {Array(6).fill(0).map((_, i) => (
+                <Card key={i} className="overflow-hidden">
+                  <div className="h-48 bg-gray-200 animate-pulse"></div>
+                  <CardContent className="p-4">
+                    <div className="h-4 bg-gray-200 rounded w-1/3 mb-2 animate-pulse"></div>
+                    <div className="h-6 bg-gray-200 rounded mb-2 animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-4 animate-pulse"></div>
+                    <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+                  </CardContent>
                 </Card>
               ))}
             </div>
-          ) : data?.resources && data.resources.length > 0 ? (
+          ) : data.resources.length === 0 ? (
+            <div className="text-center py-12 border rounded-lg">
+              <h3 className="text-lg font-medium mb-2">No resources found</h3>
+              <p className="text-gray-500 mb-4">
+                Try adjusting your search or filter criteria.
+              </p>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedCategory('All Categories');
+                  setSelectedType('All Types');
+                  setIsSearching(false);
+                  setCurrentPage(1);
+                  refetch();
+                }}
+              >
+                Clear All Filters
+              </Button>
+            </div>
+          ) : (
             <>
+              <div className="mb-4 flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
+                  Showing {data.resources.length} of {data.total} resources
+                </span>
+              </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {data.resources.map((resource) => (
-                  <Card key={resource.id} className="overflow-hidden h-full flex flex-col">
-                    <AspectRatio ratio={16/9}>
-                      <img 
-                        src={resource.thumbnail} 
-                        alt={resource.title} 
-                        className="object-cover w-full h-full"
-                      />
-                    </AspectRatio>
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start mb-1">
-                        <span className="flex items-center text-xs bg-gray-100 rounded-full px-2 py-1">
-                          {resourceTypeIcons[resource.type]}
-                          <span className="ml-1 capitalize">{resource.type}</span>
+                {data.resources.map(resource => (
+                  <Card key={resource.id} className="overflow-hidden flex flex-col h-full">
+                    <div className="relative">
+                      <AspectRatio ratio={16/9}>
+                        <img 
+                          src={resource.thumbnail} 
+                          alt={resource.title}
+                          className="object-cover w-full h-full transition-transform hover:scale-105"
+                        />
+                      </AspectRatio>
+                      <Badge
+                        className="absolute top-2 right-2 text-xs"
+                        variant={
+                          resource.type === 'article' ? 'default' :
+                          resource.type === 'video' ? 'destructive' :
+                          resource.type === 'guide' ? 'outline' : 'secondary'
+                        }
+                      >
+                        {resource.type}
+                      </Badge>
+                    </div>
+                    
+                    <CardContent className="p-4 flex-grow">
+                      <h3 className="font-bold text-lg mb-2 line-clamp-2">{resource.title}</h3>
+                      <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
+                        {resource.description}
+                      </p>
+                      
+                      <div className="flex flex-wrap text-xs text-muted-foreground gap-x-4 gap-y-2 mb-4">
+                        <span className="flex items-center">
+                          <User className="h-3 w-3 mr-1" /> {resource.author}
                         </span>
-                        <span className="text-xs text-gray-500">{resource.date}</span>
+                        <span className="flex items-center">
+                          <Clock className="h-3 w-3 mr-1" /> {resource.readTime}
+                        </span>
+                        <span className="flex items-center">
+                          <Tag className="h-3 w-3 mr-1" /> {resource.category}
+                        </span>
                       </div>
-                      <CardTitle className="text-xl line-clamp-2">{resource.title}</CardTitle>
-                      <CardDescription className="line-clamp-1">{resource.author}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="pb-2 flex-grow">
-                      <p className="text-gray-600 line-clamp-2">{resource.description}</p>
                     </CardContent>
-                    <CardFooter className="pt-2 flex justify-between border-t">
-                      <span className="text-xs text-gray-500">{resource.readTime}</span>
-                      <Link to={`/resource/${resource.id}`} className="text-sm font-medium text-agri-green hover:underline flex items-center">
-                        Read More <ArrowRight className="ml-1 h-3 w-3" />
-                      </Link>
+                    
+                    <CardFooter className="p-4 pt-0">
+                      <Button asChild variant="outline" size="sm" className="w-full">
+                        <Link to={`/resource/${resource.id}`} className="flex items-center justify-center">
+                          View Resource <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      </Button>
                     </CardFooter>
                   </Card>
                 ))}
               </div>
               
-              {/* Pagination */}
-              <div className="flex justify-center mt-8">
-                {data.totalPages > 1 && (
-                  <Pagination>
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious 
-                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                          disabled={currentPage === 1}
-                          className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-                        />
-                      </PaginationItem>
-                      
-                      {/* First page */}
-                      {currentPage > 3 && (
-                        <PaginationItem>
-                          <PaginationLink onClick={() => setCurrentPage(1)}>1</PaginationLink>
-                        </PaginationItem>
-                      )}
-                      
-                      {/* Ellipsis */}
-                      {currentPage > 3 && (
-                        <PaginationItem>
-                          <PaginationEllipsis />
-                        </PaginationItem>
-                      )}
-                      
-                      {/* Page before current */}
-                      {currentPage > 1 && (
-                        <PaginationItem>
-                          <PaginationLink onClick={() => setCurrentPage(currentPage - 1)}>
-                            {currentPage - 1}
-                          </PaginationLink>
-                        </PaginationItem>
-                      )}
-                      
-                      {/* Current page */}
-                      <PaginationItem>
-                        <PaginationLink isActive>{currentPage}</PaginationLink>
-                      </PaginationItem>
-                      
-                      {/* Page after current */}
-                      {currentPage < data.totalPages && (
-                        <PaginationItem>
-                          <PaginationLink onClick={() => setCurrentPage(currentPage + 1)}>
-                            {currentPage + 1}
-                          </PaginationLink>
-                        </PaginationItem>
-                      )}
-                      
-                      {/* Ellipsis */}
-                      {currentPage < data.totalPages - 2 && (
-                        <PaginationItem>
-                          <PaginationEllipsis />
-                        </PaginationItem>
-                      )}
-                      
-                      {/* Last page */}
-                      {currentPage < data.totalPages - 1 && (
-                        <PaginationItem>
-                          <PaginationLink onClick={() => setCurrentPage(data.totalPages)}>
-                            {data.totalPages}
-                          </PaginationLink>
-                        </PaginationItem>
-                      )}
-                      
-                      <PaginationItem>
-                        <PaginationNext 
-                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, data.totalPages))}
-                          disabled={currentPage >= data.totalPages}
-                          className={currentPage >= data.totalPages ? "pointer-events-none opacity-50" : ""}
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                )}
-              </div>
+              {totalPages > 1 && (
+                <div className="flex justify-center mt-8">
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={handlePreviousPage}
+                      variant="outline"
+                      className={currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""}
+                      disabled={currentPage === 1}
+                    >
+                      Previous
+                    </Button>
+                    
+                    {[...Array(totalPages)].map((_, index) => (
+                      <Button
+                        key={index}
+                        variant={currentPage === index + 1 ? "default" : "outline"}
+                        className="w-10"
+                        onClick={() => setCurrentPage(index + 1)}
+                      >
+                        {index + 1}
+                      </Button>
+                    ))}
+                    
+                    <Button 
+                      onClick={handleNextPage}
+                      variant="outline"
+                      className={currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              )}
             </>
-          ) : (
-            <div className="text-center py-12 border-2 border-dashed rounded-lg">
-              <BookOpen className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-xl font-medium mb-2">No Resources Found</h3>
-              <p className="text-gray-600 max-w-md mx-auto">
-                We couldn't find any resources matching your search criteria. Try adjusting your filters or search term.
-              </p>
-            </div>
           )}
-        </TabsContent>
-        
-        <TabsContent value="featured" className="space-y-8">
-          <div className="grid md:grid-cols-2 gap-6">
-            <Card className="overflow-hidden">
-              <AspectRatio ratio={16/9}>
-                <img 
-                  src="https://images.unsplash.com/photo-1605000797499-95a51c5269ae?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" 
-                  alt="Soil Health Guide" 
-                  className="object-cover w-full h-full"
-                />
-              </AspectRatio>
-              <CardHeader>
-                <CardTitle>Soil Health Management</CardTitle>
-                <CardDescription>A comprehensive collection of resources to understand and improve your soil health.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600">
-                  This curated collection includes 12 resources covering soil testing, organic matter management, 
-                  erosion control, and biological activity in soils.
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <span className="text-xs bg-gray-100 rounded-full px-3 py-1">Soil Testing</span>
-                  <span className="text-xs bg-gray-100 rounded-full px-3 py-1">Organic Matter</span>
-                  <span className="text-xs bg-gray-100 rounded-full px-3 py-1">Erosion Control</span>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Link to="/resources/collection/soil-health">
-                  <Button>
-                    Explore Collection <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-              </CardFooter>
-            </Card>
-            
-            <Card className="overflow-hidden">
-              <AspectRatio ratio={16/9}>
-                <img 
-                  src="https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" 
-                  alt="Climate-Smart Agriculture" 
-                  className="object-cover w-full h-full"
-                />
-              </AspectRatio>
-              <CardHeader>
-                <CardTitle>Climate-Smart Agriculture</CardTitle>
-                <CardDescription>Practical techniques to adapt farming operations to changing climate conditions.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600">
-                  Access 8 essential resources on drought management, flood mitigation, heat-resistant crops, 
-                  and weather monitoring for resilient farming.
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <span className="text-xs bg-gray-100 rounded-full px-3 py-1">Drought Management</span>
-                  <span className="text-xs bg-gray-100 rounded-full px-3 py-1">Resilient Crops</span>
-                  <span className="text-xs bg-gray-100 rounded-full px-3 py-1">Weather Planning</span>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Link to="/resources/collection/climate-smart">
-                  <Button>
-                    Explore Collection <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-              </CardFooter>
-            </Card>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-6">
-            <Card className="overflow-hidden">
-              <CardHeader>
-                <CardTitle>Beginner's Guide to Organic Farming</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600">
-                  Start your organic farming journey with this essential collection of 6 beginner-friendly guides.
-                </p>
-              </CardContent>
-              <CardFooter>
-                <Link to="/resources/collection/organic-basics" className="text-agri-green hover:underline flex items-center text-sm font-medium">
-                  View Collection <ArrowRight className="ml-1 h-3 w-3" />
-                </Link>
-              </CardFooter>
-            </Card>
-            
-            <Card className="overflow-hidden">
-              <CardHeader>
-                <CardTitle>Water Conservation Techniques</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600">
-                  Learn efficient irrigation systems and water management strategies for sustainable farming.
-                </p>
-              </CardContent>
-              <CardFooter>
-                <Link to="/resources/collection/water-conservation" className="text-agri-green hover:underline flex items-center text-sm font-medium">
-                  View Collection <ArrowRight className="ml-1 h-3 w-3" />
-                </Link>
-              </CardFooter>
-            </Card>
-            
-            <Card className="overflow-hidden">
-              <CardHeader>
-                <CardTitle>Farm Business Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600">
-                  Resources on financial planning, marketing, and business strategies for agricultural enterprises.
-                </p>
-              </CardContent>
-              <CardFooter>
-                <Link to="/resources/collection/farm-business" className="text-agri-green hover:underline flex items-center text-sm font-medium">
-                  View Collection <ArrowRight className="ml-1 h-3 w-3" />
-                </Link>
-              </CardFooter>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
     </div>
   );
 };

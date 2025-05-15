@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { Wheat, TrendingUp, Soil, CloudSun } from 'lucide-react';
+import { Wheat, TrendingUp, Leaf, CloudSun } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -292,7 +292,7 @@ const CropSuggestion: React.FC = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Soil className="h-5 w-5 text-agri-green" />
+                    <Leaf className="h-5 w-5 text-agri-green" />
                     Farm Parameters
                   </CardTitle>
                   <CardDescription>
