@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Gallery } from "lucide-react";
+import { GalleryHorizontal } from "lucide-react";
 
 const NotFound = () => {
   const location = useLocation();
@@ -51,7 +51,7 @@ const NotFound = () => {
             
             <Link to="/resources">
               <Button variant="outline" className="w-full">
-                <Gallery className="mr-2 h-4 w-4" />
+                <GalleryHorizontal className="mr-2 h-4 w-4" />
                 Browse Resources
               </Button>
             </Link>
