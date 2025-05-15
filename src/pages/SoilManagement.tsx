@@ -40,6 +40,20 @@ type CropSuggestion = {
   imageUrl: string;
 };
 
+// Define soil types array
+const soilTypes = [
+  'Clay',
+  'Sandy',
+  'Silty',
+  'Loamy',
+  'Chalky',
+  'Peaty',
+  'Black Cotton',
+  'Red Soil',
+  'Alluvial',
+  'Laterite'
+];
+
 // Mock API function to simulate getting crop suggestions
 const fetchCropSuggestions = async (soilData: SoilData): Promise<CropSuggestion[]> => {
   // Simulate API delay
