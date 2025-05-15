@@ -17,6 +17,7 @@ import FAQs from "./pages/FAQs";
 import CropSuggestion from "./pages/CropSuggestion";
 import ResourceLibrary from "./pages/ResourceLibrary";
 import ResourceDetail from "./pages/ResourceDetail";
+import SoilManagement from "./pages/SoilManagement";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import AiChatbot from "./components/AiChatbot";
@@ -45,6 +46,7 @@ const App = () => (
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:id" element={<BlogPost />} />
               <Route path="/faqs" element={<FAQs />} />
+              <Route path="/soil-management" element={<SoilManagement />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
