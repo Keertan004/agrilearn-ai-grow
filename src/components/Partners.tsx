@@ -10,33 +10,33 @@ type Partner = {
 const partners: Partner[] = [
   {
     name: "AgroTech Innovations",
-    logo: "https://via.placeholder.com/150x80?text=AgroTech",
-    website: "#"
+    logo: "https://images.unsplash.com/photo-1603302576837-37561b2e2302?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&h=150&q=80",
+    website: "https://example.com/agrotech"
   },
   {
     name: "Farm Solutions Inc.",
-    logo: "https://via.placeholder.com/150x80?text=FarmSolutions",
-    website: "#"
+    logo: "https://images.unsplash.com/photo-1560179707-f14e90ef3623?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&h=150&q=80",
+    website: "https://example.com/farmsolutions"
   },
   {
     name: "GreenGrow Foundation",
-    logo: "https://via.placeholder.com/150x80?text=GreenGrow",
-    website: "#"
+    logo: "https://images.unsplash.com/photo-1567095761054-7a02e69e5c43?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&h=150&q=80",
+    website: "https://example.com/greengrow"
   },
   {
     name: "Soil Science Institute",
-    logo: "https://via.placeholder.com/150x80?text=SoilScience",
-    website: "#"
+    logo: "https://images.unsplash.com/photo-1560452992-e3c28ffc7a8d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&h=150&q=80",
+    website: "https://example.com/soilscience"
   },
   {
     name: "PlantHealth Co",
-    logo: "https://via.placeholder.com/150x80?text=PlantHealth",
-    website: "#"
+    logo: "https://images.unsplash.com/photo-1444858291040-58f756a3bdd6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&h=150&q=80",
+    website: "https://example.com/planthealth"
   },
   {
     name: "AgriData Systems",
-    logo: "https://via.placeholder.com/150x80?text=AgriData",
-    website: "#"
+    logo: "https://images.unsplash.com/photo-1542223189-67a03fa0f0bd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&h=150&q=80",
+    website: "https://example.com/agridata"
   }
 ];
 
