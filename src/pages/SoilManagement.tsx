@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Plant, Cloud, Droplets, Thermometer, ChevronDown, ArrowRight, Leaf } from 'lucide-react';
+import { Leaf, Cloud, Droplets, Thermometer, ChevronDown, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -41,19 +40,6 @@ type CropSuggestion = {
   imageUrl: string;
 };
 
-const soilTypes = [
-  'Clay',
-  'Sandy',
-  'Silty',
-  'Loamy',
-  'Chalky',
-  'Peaty',
-  'Black Cotton',
-  'Red Soil',
-  'Alluvial',
-  'Laterite'
-];
-
 // Mock API function to simulate getting crop suggestions
 const fetchCropSuggestions = async (soilData: SoilData): Promise<CropSuggestion[]> => {
   // Simulate API delay
@@ -71,7 +57,7 @@ const fetchCropSuggestions = async (soilData: SoilData): Promise<CropSuggestion[
         rainfall: "100-200 cm",
         soil: "Clay or Loamy"
       },
-      marketTrend: "up",
+      marketTrend: "up" as const,
       price: "$15-18 per kg",
       growthDuration: "3-4 months",
       imageUrl: "https://images.unsplash.com/photo-1586201375761-83865001e31c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8cmljZSUyMGZpZWxkfGVufDB8fDB8fHww&auto=format&fit=crop&w=800&q=60"
@@ -86,7 +72,7 @@ const fetchCropSuggestions = async (soilData: SoilData): Promise<CropSuggestion[
         rainfall: "60-90 cm",
         soil: "Loamy or Clay"
       },
-      marketTrend: "stable",
+      marketTrend: "stable" as const,
       price: "$12-14 per kg",
       growthDuration: "4-5 months",
       imageUrl: "https://images.unsplash.com/photo-1574323347407-f5e1c0b24d11?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8d2hlYXQlMjBmaWVsZHxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60"
@@ -101,7 +87,7 @@ const fetchCropSuggestions = async (soilData: SoilData): Promise<CropSuggestion[
         rainfall: "50-80 cm",
         soil: "Well-drained Loamy"
       },
-      marketTrend: "up",
+      marketTrend: "up" as const,
       price: "$10-13 per kg",
       growthDuration: "3-4 months",
       imageUrl: "https://images.unsplash.com/photo-1535913989690-f90e1c2d53b4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8Y29ybiUyMGZpZWxkfGVufDB8fDB8fHww&auto=format&fit=crop&w=800&q=60"
@@ -116,7 +102,7 @@ const fetchCropSuggestions = async (soilData: SoilData): Promise<CropSuggestion[
         rainfall: "60-120 cm",
         soil: "Black Cotton or Loamy"
       },
-      marketTrend: "down",
+      marketTrend: "down" as const,
       price: "$20-25 per kg",
       growthDuration: "5-6 months",
       imageUrl: "https://images.unsplash.com/photo-1599507409752-b36702c6613b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8Y290dG9uJTIwZmllbGR8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60"
@@ -266,7 +252,7 @@ const SoilManagement: React.FC = () => {
           <Card className="h-full">
             <CardHeader>
               <CardTitle className="flex items-center">
-                <Plant className="mr-2 h-5 w-5 text-agri-green" />
+                <Leaf className="mr-2 h-5 w-5 text-agri-green" />
                 Soil Parameters
               </CardTitle>
               <CardDescription>
