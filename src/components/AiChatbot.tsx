@@ -13,15 +13,26 @@ import {
 import { MessageSquare, Send, Image } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { generateChatbotResponse } from "@/services/chatbotService";
+import { analyzePlantDisease } from "@/services/plantDiseaseService";
+import { toast } from "@/components/ui/use-toast";
+import { useNavigate } from 'react-router-dom';
 
 type Message = {
   id: number;
   text: string;
   isUser: boolean;
   image?: string;
+  isProcessing?: boolean;
+  diseaseResult?: {
+    name: string;
+    cure: string;
+    prevention: string;
+    confidence?: number;
+  };
 };
 
 const AiChatbot = () => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([
@@ -67,50 +78,100 @@ const AiChatbot = () => {
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
     // Check if file is an image
     if (!file.type.match('image.*')) {
+      toast({
+        title: "Invalid file",
+        description: "Please upload an image file (JPG, PNG, etc)",
+        variant: "destructive"
+      });
       return;
     }
     
     // Create image message preview
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       const imagePreview = reader.result as string;
       
-      // Add image message
-      const newUserMessage = { 
-        id: messages.length + 1, 
-        text: "I've uploaded an image of my plant.", 
+      // Add initial image message
+      const userMessageId = messages.length + 1;
+      const userMessage = { 
+        id: userMessageId, 
+        text: "I've uploaded an image of my plant for disease analysis.", 
         isUser: true,
-        image: imagePreview
+        image: imagePreview,
       };
-      setMessages(prevMessages => [...prevMessages, newUserMessage]);
+      
+      setMessages(prevMessages => [...prevMessages, userMessage]);
       
       // Show typing indicator
       setIsTyping(true);
       
-      // Generate response after a delay
-      setTimeout(() => {
-        const botResponse = "Thank you for sharing this plant image. It appears to show some signs of stress. I'd recommend uploading it to our Disease Detection tool for a more detailed analysis. Would you like to try that?";
-        const newBotMessage = { 
-          id: messages.length + 2, 
-          text: botResponse, 
-          isUser: false 
+      // Initial response acknowledging the upload
+      const initialBotMessage = {
+        id: messages.length + 2,
+        text: "I've received your plant image. Analyzing for signs of disease...",
+        isUser: false,
+        isProcessing: true
+      };
+      
+      setMessages(prevMessages => [...prevMessages, initialBotMessage]);
+      
+      try {
+        // Use the existing plant disease service to analyze the image
+        const diseaseResult = await analyzePlantDisease(imagePreview);
+        
+        // Create result message with the disease information
+        const resultMessage = {
+          id: messages.length + 3,
+          text: `Based on my analysis, I've identified this as: ${diseaseResult.name} (${diseaseResult.confidence}% confidence).
+
+Treatment: ${diseaseResult.cure}
+
+Prevention: ${diseaseResult.prevention}
+
+Would you like to see more detailed information about this disease?`,
+          isUser: false,
+          diseaseResult: diseaseResult
         };
         
-        setMessages(prevMessages => [...prevMessages, newBotMessage]);
+        // Replace the processing message with the result
+        setMessages(prevMessages => prevMessages.map(msg => 
+          msg.isProcessing ? resultMessage : msg
+        ));
+        
         setIsTyping(false);
-      }, 2000);
+      } catch (error) {
+        console.error("Error analyzing plant disease:", error);
+        
+        // Replace the processing message with an error message
+        const errorMessage = {
+          id: messages.length + 3,
+          text: "I'm having trouble analyzing this image. For a more detailed analysis, you might want to try our Disease Detection tool. Would you like me to take you there?",
+          isUser: false
+        };
+        
+        setMessages(prevMessages => prevMessages.map(msg => 
+          msg.isProcessing ? errorMessage : msg
+        ));
+        
+        setIsTyping(false);
+      }
     };
     reader.readAsDataURL(file);
   };
 
   const triggerImageUpload = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleDiseaseDetectionClick = () => {
+    setIsOpen(false); // Close the chatbot
+    navigate('/disease-detection'); // Navigate to disease detection page
   };
 
   return (
@@ -151,7 +212,20 @@ const AiChatbot = () => {
                       />
                     </div>
                   )}
-                  {msg.text}
+                  <div className="whitespace-pre-line">{msg.text}</div>
+                  
+                  {msg.diseaseResult && (
+                    <div className="mt-3">
+                      <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={handleDiseaseDetectionClick}
+                      >
+                        View Detailed Analysis
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -178,6 +252,7 @@ const AiChatbot = () => {
                 variant="ghost" 
                 className="mr-1" 
                 onClick={triggerImageUpload}
+                title="Upload plant image for disease detection"
               >
                 <Image className="h-4 w-4" />
                 <input 
