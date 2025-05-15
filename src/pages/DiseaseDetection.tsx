@@ -2,17 +2,27 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { analyzePlantDisease } from "@/services/plantDiseaseService";
-import { toast } from "sonner";
+import { analyzePlantDisease, saveToHistory } from "@/services/plantDiseaseService";
+import { toast } from "@/components/ui/use-toast";
+import { useNavigate } from 'react-router-dom';
+import { FileImage, ArrowRight } from "lucide-react";
 
 type DiseaseResult = {
+  id: string;
   name: string;
   cure: string;
   prevention: string;
   confidence?: number;
+  detailedDescription?: string;
+  symptoms?: string[];
+  scientificName?: string;
+  affectedCrops?: string[];
+  severity?: 'low' | 'medium' | 'high';
+  timestamp?: number;
 };
 
 const DiseaseDetection = () => {
+  const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -51,7 +61,10 @@ const DiseaseDetection = () => {
     }
     
     setIsLoading(true);
-    toast.info("Analyzing plant image...");
+    toast({
+      title: "Processing",
+      description: "Analyzing plant image...",
+    });
     
     try {
       // Convert image to base64 for analysis
@@ -65,23 +78,35 @@ const DiseaseDetection = () => {
         const diseaseData = await analyzePlantDisease(base64Image);
         
         // Update result with analysis data
-        setResult({
-          name: diseaseData.name,
-          cure: diseaseData.cure,
-          prevention: diseaseData.prevention,
-          confidence: diseaseData.confidence
-        });
+        setResult(diseaseData);
         
-        toast.success("Analysis complete!");
+        // Save to history
+        saveToHistory(diseaseData, base64Image);
+        
+        toast({
+          title: "Analysis complete",
+          description: "Disease detection finished successfully",
+          variant: "default",
+        });
         setError(null);
         setIsLoading(false);
       };
       
     } catch (err) {
       setError('Failed to analyze image. Please try again.');
-      toast.error("Analysis failed. Please try again.");
+      toast({
+        title: "Analysis failed",
+        description: "Please try again with another image",
+        variant: "destructive",
+      });
       console.error(err);
       setIsLoading(false);
+    }
+  };
+
+  const handleViewDetailed = () => {
+    if (result) {
+      navigate(`/disease-details/${result.id}`, { state: { disease: result, image: imagePreview } });
     }
   };
 
@@ -120,20 +145,9 @@ const DiseaseDetection = () => {
                       />
                     ) : (
                       <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <svg
+                        <FileImage
                           className="w-10 h-10 mb-3 text-gray-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                          ></path>
-                        </svg>
+                        />
                         <p className="mb-2 text-sm text-gray-500">
                           <span className="font-semibold">Click to upload</span> or drag and drop
                         </p>
@@ -184,8 +198,23 @@ const DiseaseDetection = () => {
                 <div>
                   <h3 className="font-semibold text-lg">Detected Disease</h3>
                   <p className="text-red-600 font-medium">{result.name}</p>
+                  {result.scientificName && (
+                    <p className="text-sm italic text-gray-500">{result.scientificName}</p>
+                  )}
                   {result.confidence && (
                     <p className="text-sm text-gray-500">Confidence: {result.confidence}%</p>
+                  )}
+                  {result.severity && (
+                    <div className="mt-2">
+                      <span className="text-sm">Severity: </span>
+                      <span className={`text-sm font-medium px-2 py-1 rounded ${
+                        result.severity === 'high' ? 'bg-red-100 text-red-800' :
+                        result.severity === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-green-100 text-green-800'
+                      }`}>
+                        {result.severity.charAt(0).toUpperCase() + result.severity.slice(1)}
+                      </span>
+                    </div>
                   )}
                 </div>
                 
@@ -198,6 +227,11 @@ const DiseaseDetection = () => {
                   <h3 className="font-semibold text-lg">Prevention Tips</h3>
                   <p className="text-gray-700">{result.prevention}</p>
                 </div>
+
+                <Button onClick={handleViewDetailed} className="w-full flex items-center justify-center">
+                  View Detailed Analysis
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-16 text-gray-400">

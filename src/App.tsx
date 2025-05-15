@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import DiseaseDetection from "./pages/DiseaseDetection";
+import DiseaseDetails from "./pages/DiseaseDetails";
+import History from "./pages/History";
 import Weather from "./pages/Weather";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
@@ -36,6 +38,8 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/disease-detection" element={<DiseaseDetection />} />
+              <Route path="/disease-details/:id" element={<DiseaseDetails />} />
+              <Route path="/history" element={<History />} />
               <Route path="/crop-suggestion" element={<CropSuggestion />} />
               <Route path="/resources" element={<ResourceLibrary />} />
               <Route path="/resource/:id" element={<ResourceDetail />} />

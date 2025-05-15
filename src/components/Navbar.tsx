@@ -7,7 +7,7 @@ import {
   SheetContent, 
   SheetTrigger 
 } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
+import { Menu, History } from "lucide-react";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,6 +15,7 @@ const Navbar = () => {
   const menuItems = [
     { name: 'Home', path: '/' },
     { name: 'Disease Detection', path: '/disease-detection' },
+    { name: 'History', path: '/history' },
     { name: 'Crop Suggestion', path: '/crop-suggestion' },
     { name: 'Resource Library', path: '/resources' },
     { name: 'Weather', path: '/weather' },
@@ -41,7 +42,12 @@ const Navbar = () => {
                 to={item.path}
                 className="nav-link px-3 py-2 rounded-md text-sm"
               >
-                {item.name}
+                {item.name === 'History' ? (
+                  <span className="flex items-center">
+                    <History className="h-4 w-4 mr-1" />
+                    {item.name}
+                  </span>
+                ) : item.name}
               </Link>
             ))}
           </div>
@@ -72,7 +78,12 @@ const Navbar = () => {
                       className="text-lg font-medium py-2"
                       onClick={() => setIsOpen(false)}
                     >
-                      {item.name}
+                      {item.name === 'History' ? (
+                        <span className="flex items-center">
+                          <History className="h-4 w-4 mr-2" />
+                          {item.name}
+                        </span>
+                      ) : item.name}
                     </Link>
                   ))}
                   <div className="pt-4 space-y-2">
