@@ -121,7 +121,8 @@ export const analyzePlantDisease = (imageData: string): Promise<PlantDisease> =>
         symptoms: selectedDisease.symptoms,
         scientificName: selectedDisease.scientificName,
         affectedCrops: selectedDisease.affectedCrops,
-        severity: selectedDisease.severity,
+        // Fix: Ensure severity is always one of the allowed values
+        severity: selectedDisease.severity as 'low' | 'medium' | 'high',
         images: selectedDisease.images,
         timestamp: Date.now()
       };
